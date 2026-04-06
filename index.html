@@ -132,7 +132,7 @@
 <!-- GAS App iframe ================================================ -->
 <!-- REPLACE THE URL BELOW WITH YOUR DEPLOYED GAS WEB APP URL       -->
 <iframe id="app-frame"
-  src="https://script.google.com/macros/s/AKfycbz5OSjqvgSIe_ZB1ZQZjfKjdYXxF6QrNb1NAvsiavxDWQSGNGadFILB79n169hSZ66Omw/exec"
+  src=""
   allow="clipboard-write"
   sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-top-navigation allow-modals">
 </iframe>
@@ -152,51 +152,47 @@
 </div>
 
 <script>
-
- const GAS_URL = "https://script.google.com/macros/s/AKfycbz5OSjqvgSIe_ZB1ZQZjfKjdYXxF6QrNb1NAvsiavxDWQSGNGadFILB79n169hSZ66Omw/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbz5OSjqvgSIe_ZB1ZQZjfKjdYXxF6QrNb1NAvsiavxDWQSGNGadFILB79n169hSZ66Omw/exec";
 const GITHUB_URL = "https://fsrshahalam.github.io/react/";
 
-// If returning from GAS login (has ?loggedin param), clean the URL silently
+// Clean URL if returning from login
 const params = new URLSearchParams(window.location.search);
 if (params.has('loggedin')) {
-  window.history.replaceState({}, '', GITHUB_URL); // clean URL bar
+  window.history.replaceState({}, '', GITHUB_URL);
 }
 
-// Load iframe normally
+// Set iframe src with noredirect flag — ONE declaration only
 const frame = document.getElementById('app-frame');
 frame.src = GAS_URL + "?noredirect=1";
+
+// Hide loading screen when iframe loads
+frame.addEventListener('load', function() {
+  const ls = document.getElementById('loading-screen');
+  if (ls) { ls.classList.add('hide'); setTimeout(function() { ls.remove(); }, 500); }
+});
+
+// Fallback hide after 10s
+setTimeout(function() {
+  const ls = document.getElementById('loading-screen');
+  if (ls) { ls.classList.add('hide'); setTimeout(function() { ls.remove(); }, 500); }
+}, 10000);
 
 // Listen for login trigger from GAS iframe
 window.addEventListener('message', function(e) {
   if (e.data && e.data.type === 'GAS_DO_LOGIN') {
-    // Redirect top-level to GAS, which after auth comes back to GitHub
     window.location.href = GAS_URL + "?redirectto=" + encodeURIComponent(GITHUB_URL + "?loggedin=1");
   }
 });
-// --- Register service worker ---
+
+// Register service worker
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(function() {});
 }
 
-// --- Hide loading screen when iframe loads ---
-var frame = document.getElementById('app-frame');
-frame.addEventListener('load', function() {
-  var ls = document.getElementById('loading-screen');
-  ls.classList.add('hide');
-  setTimeout(function() { ls.remove(); }, 500);
-});
-
-// --- Fallback: hide loading after 10s even if iframe load event doesn't fire ---
-setTimeout(function() {
-  var ls = document.getElementById('loading-screen');
-  if (ls) { ls.classList.add('hide'); setTimeout(function() { ls.remove(); }, 500); }
-}, 10000);
-
-// --- PWA Install Logic ---
+// PWA Install Logic
 (function() {
   var isStandalone = window.navigator.standalone === true ||
     window.matchMedia('(display-mode: standalone)').matches;
-
   if (isStandalone) return;
   if (localStorage.getItem('pwa_banner_dismissed') === '1') return;
 
@@ -213,64 +209,41 @@ setTimeout(function() {
   var instruction = document.getElementById('pwa-instruction');
   var deferredPrompt = null;
 
-  // --- Capture beforeinstallprompt (Chromium/Edge) ---
   window.addEventListener('beforeinstallprompt', function(e) {
     e.preventDefault();
     deferredPrompt = e;
     installBtn.style.display = 'inline-flex';
     instruction.style.display = 'none';
-    if (!banner.classList.contains('pwa-visible')) {
-      banner.classList.add('pwa-visible');
-    }
+    if (!banner.classList.contains('pwa-visible')) banner.classList.add('pwa-visible');
   });
 
-  // --- One-click install button ---
   installBtn.addEventListener('click', function() {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     deferredPrompt.userChoice.then(function(result) {
-      if (result.outcome === 'accepted') {
-        dismissBanner(true);
-      }
+      if (result.outcome === 'accepted') dismissBanner(true);
       deferredPrompt = null;
     });
   });
 
-  // --- Auto-dismiss on successful install ---
-  window.addEventListener('appinstalled', function() {
-    dismissBanner(true);
-  });
+  window.addEventListener('appinstalled', function() { dismissBanner(true); });
 
-  // --- Fallback manual instructions ---
   function setManualInstructions() {
-    if (isIOS) {
-      instruction.innerHTML = 'Tap <strong>Share</strong> &#9757; then <strong>"Add to Home Screen"</strong>';
-    } else if (isAndroid) {
-      instruction.innerHTML = 'Tap <strong>&#8942;</strong> menu then <strong>"Add to Home Screen"</strong>';
-    } else if (isEdge) {
-      instruction.innerHTML = 'Click <strong>&#8942;</strong> menu &rarr; <strong>Apps</strong> &rarr; <strong>"Install this site as an app"</strong>';
-    } else if (isChromium) {
-      instruction.innerHTML = 'Click <strong>&#8942;</strong> menu &rarr; <strong>Cast, save and share</strong> &rarr; <strong>"Install page as app"</strong>';
-    } else if (isSafariDesktop) {
-      instruction.innerHTML = 'Click <strong>File</strong> &rarr; <strong>"Add to Dock"</strong> (macOS Sonoma+)';
-    } else if (isFirefox) {
-      instruction.innerHTML = 'Firefox doesn\'t support install &mdash; use <strong>Chrome</strong> or <strong>Edge</strong> instead';
-    } else {
-      instruction.innerHTML = 'Use your browser\'s <strong>"Create shortcut"</strong> or <strong>"Install"</strong> option from the menu';
-    }
+    if (isIOS) instruction.innerHTML = 'Tap <strong>Share</strong> &#9757; then <strong>"Add to Home Screen"</strong>';
+    else if (isAndroid) instruction.innerHTML = 'Tap <strong>&#8942;</strong> menu then <strong>"Add to Home Screen"</strong>';
+    else if (isEdge) instruction.innerHTML = 'Click <strong>&#8942;</strong> menu &rarr; <strong>Apps</strong> &rarr; <strong>"Install this site as an app"</strong>';
+    else if (isChromium) instruction.innerHTML = 'Click <strong>&#8942;</strong> menu &rarr; <strong>Cast, save and share</strong> &rarr; <strong>"Install page as app"</strong>';
+    else if (isSafariDesktop) instruction.innerHTML = 'Click <strong>File</strong> &rarr; <strong>"Add to Dock"</strong> (macOS Sonoma+)';
+    else if (isFirefox) instruction.innerHTML = 'Firefox doesn\'t support install &mdash; use <strong>Chrome</strong> or <strong>Edge</strong> instead';
+    else instruction.innerHTML = 'Use your browser\'s <strong>"Create shortcut"</strong> or <strong>"Install"</strong> option from the menu';
   }
-
   setManualInstructions();
 
-  // --- Show banner after delay ---
   setTimeout(function() {
-    if (!deferredPrompt) {
-      instruction.style.display = 'block';
-    }
+    if (!deferredPrompt) instruction.style.display = 'block';
     banner.classList.add('pwa-visible');
   }, 4000);
 
-  // --- Dismiss ---
   function dismissBanner(permanent) {
     banner.classList.remove('pwa-visible');
     banner.classList.add('pwa-hiding');
@@ -278,9 +251,7 @@ setTimeout(function() {
     setTimeout(function() { banner.style.display = 'none'; }, 300);
   }
 
-  document.getElementById('pwa-dismiss').addEventListener('click', function() {
-    dismissBanner(true);
-  });
+  document.getElementById('pwa-dismiss').addEventListener('click', function() { dismissBanner(true); });
 })();
 </script>
 </body>
