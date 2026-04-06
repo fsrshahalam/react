@@ -1,217 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#1a3a9a">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="FSR REACT">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="application-name" content="FSR REACT">
-  <title>FSR REACT &mdash; Research Ethics Application Compliance Tracking</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#1a3a9a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="FSR REACT" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="application-name" content="FSR REACT" />
+  <title>FSR REACT</title>
+
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #f1f5f9; font-family: 'Segoe UI', system-ui, sans-serif; }
-    #app-frame { width: 100%; height: 100%; border: none; display: block; }
-    #loading-screen {
-      position: fixed; inset: 0; z-index: 100;
-      background: linear-gradient(135deg, #0f2057 0%, #1a3a9a 50%, #5b2d8e 100%);
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      transition: opacity 0.4s ease;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0f2057 0%, #1a3a9a 55%, #5b2d8e 100%);
+      color: #fff;
+      padding: 24px;
     }
-    #loading-screen.hide { opacity: 0; pointer-events: none; }
-    #loading-screen .logo {
-      width: 80px; height: 80px; border-radius: 20px;
-      background: rgba(255,255,255,0.15); backdrop-filter: blur(10px);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 32px; font-weight: 900; color: #fff; margin-bottom: 20px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    .card {
+      width: 100%;
+      max-width: 460px;
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 24px;
+      padding: 32px 24px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+      text-align: center;
     }
-    #loading-screen h1 { color: #fff; font-size: 22px; font-weight: 700; margin-bottom: 6px; }
-    #loading-screen p  { color: rgba(255,255,255,0.6); font-size: 13px; margin-bottom: 24px; }
-    .spinner {
-      width: 32px; height: 32px;
-      border: 3px solid rgba(255,255,255,0.2); border-top-color: #fff;
-      border-radius: 50%; animation: spin 0.8s linear infinite;
+    .logo {
+      width: 74px;
+      height: 74px;
+      margin: 0 auto 18px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.16);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      font-weight: 900;
+      letter-spacing: 1px;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    @keyframes pwaSlideUp { from { opacity:0; transform:translateY(100%); } to { opacity:1; transform:translateY(0); } }
-    @keyframes pwaFadeOut { from { opacity:1; transform:translateY(0); } to { opacity:0; transform:translateY(100%); } }
-    #pwa-install-banner {
-      position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999;
-      padding: 12px; pointer-events: none; display: none;
+    h1 {
+      font-size: 30px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      letter-spacing: 0.4px;
     }
-    #pwa-install-banner.pwa-visible { display: block; animation: pwaSlideUp 0.4s ease-out forwards; }
-    #pwa-install-banner.pwa-hiding  { animation: pwaFadeOut 0.3s ease-in forwards; }
-    .pwa-card {
-      pointer-events: auto; background: #fff; border-radius: 16px;
-      box-shadow: 0 -2px 20px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.08);
-      padding: 16px; max-width: 480px; margin: 0 auto;
-      display: flex; align-items: flex-start; gap: 12px;
-      border: 1px solid rgba(26,58,154,0.1);
+    .subtitle {
+      color: rgba(255,255,255,0.82);
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 24px;
     }
-    .pwa-icon { width: 44px; height: 44px; min-width: 44px; border-radius: 12px; background: linear-gradient(135deg, #1a3a9a, #5b2d8e); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; font-weight: 800; }
-    .pwa-body { flex: 1; min-width: 0; }
-    .pwa-title { font-size: 14px; font-weight: 700; color: #0f2057; line-height: 1.3; margin: 0 0 4px 0; }
-    .pwa-desc  { font-size: 13px; color: #4b5563; line-height: 1.4; margin: 0 0 8px 0; }
-    .pwa-install-btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; background: linear-gradient(135deg, #1a3a9a, #2b5fd4); color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; box-shadow: 0 2px 8px rgba(26,58,154,0.3); min-height: 44px; }
-    .pwa-install-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(26,58,154,0.4); }
-    .pwa-install-btn:active { transform: scale(0.97); }
-    .pwa-instruction { font-size: 12px; color: #1a3a9a; font-weight: 600; background: #f0f4ff; padding: 6px 10px; border-radius: 8px; line-height: 1.4; }
-    .pwa-dismiss { width: 44px; height: 44px; min-width: 44px; border: none; background: #f3f4f6; border-radius: 50%; font-size: 20px; color: #6b7280; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
-    .pwa-dismiss:hover { background: #e5e7eb; }
-    @media all and (display-mode: standalone) { body { padding-bottom: env(safe-area-inset-bottom, 0); } }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 52px;
+      border: none;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+    }
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+    .btn-primary {
+      background: #fff;
+      color: #1a3a9a;
+      box-shadow: 0 10px 24px rgba(255,255,255,0.18);
+      margin-bottom: 12px;
+    }
+    .btn-secondary {
+      background: rgba(255,255,255,0.10);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.22);
+    }
+    .note {
+      margin-top: 18px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.72);
+    }
+    .small {
+      margin-top: 10px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.62);
+      word-break: break-word;
+    }
   </style>
 </head>
 <body>
-
-  <div id="loading-screen">
+  <div class="card">
     <div class="logo">R</div>
     <h1>FSR REACT</h1>
-    <p>Loading application...</p>
-    <div class="spinner"></div>
+    <p class="subtitle">
+      Research Ethics Application & Compliance Tracking System
+    </p>
+
+    <a
+      class="btn btn-primary"
+      href="https://script.google.com/macros/s/AKfycbz5OSjqvgSIe_ZB1ZQZjfKjdYXxF6QrNb1NAvsiavxDWQSGNGadFILB79n169hSZ66Omw/exec">
+      Open FSR REACT
+    </a>
+
+    <a
+      class="btn btn-secondary"
+      href="https://script.google.com/macros/s/AKfycbz5OSjqvgSIe_ZB1ZQZjfKjdYXxF6QrNb1NAvsiavxDWQSGNGadFILB79n169hSZ66Omw/exec"
+      target="_blank"
+      rel="noopener noreferrer">
+      Open in New Tab
+    </a>
+
+    <p class="note">
+      Use your official UiTM Google account to sign in. The app will open directly in its native Google Apps Script environment.
+    </p>
+
+    <p class="small">
+      Tip: bookmark the GAS page after first login for faster access.
+    </p>
   </div>
-
-  <!--
-    allow-modals: fixes confirm()/alert() → fixes Batch Record Decision,
-    Batch Assign, Batch Reassign, Certs, Retract, etc.
-  -->
-  <iframe
-    id="app-frame"
-    src="https://script.google.com/a/macros/uitm.edu.my/s/AKfycbz5OSjqvgSIe_ZB1ZQZjfKjdYXxF6QrNb1NAvsiavxDWQSGNGadFILB79n169hSZ66Omw/exec"
-    allow="clipboard-write"
-    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-top-navigation-by-user-activation allow-modals">
-  </iframe>
-
-  <div id="pwa-install-banner">
-    <div class="pwa-card">
-      <div class="pwa-icon">R</div>
-      <div class="pwa-body">
-        <p class="pwa-title">Install FSR REACT</p>
-        <p class="pwa-desc">Install this app for faster access and better experience</p>
-        <button class="pwa-install-btn" id="pwa-install-btn" style="display:none">&#10515; Install App</button>
-        <div class="pwa-instruction" id="pwa-instruction" style="display:none"></div>
-      </div>
-      <button class="pwa-dismiss" id="pwa-dismiss" aria-label="Dismiss">&times;</button>
-    </div>
-  </div>
-
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(function(){});
-    }
-
-    var GAS_BASE_URL = document.getElementById('app-frame').src.split('?')[0];
-    var GITHUB_RETURN_URL = window.location.href.split('?')[0];
-
-    // Hide loading screen once iframe loads
-    var frame = document.getElementById('app-frame');
-    frame.addEventListener('load', function() {
-      var ls = document.getElementById('loading-screen');
-      if (!ls) return;
-      ls.classList.add('hide');
-      setTimeout(function() { if (ls && ls.parentNode) ls.remove(); }, 500);
-    });
-    setTimeout(function() {
-      var ls = document.getElementById('loading-screen');
-      if (ls) { ls.classList.add('hide'); setTimeout(function() { if (ls && ls.parentNode) ls.remove(); }, 500); }
-    }, 10000);
-
-    /*
-      LOGIN REDIRECT FIX — Token Relay via PropertiesService
-      --------------------------------------------------------
-      When the GAS iframe detects it is inside an iframe (no google.script.run
-      for auth), it posts { type: "GAS_DO_LOGIN", gasUrl: "..." } here.
-
-      We:
-        1. Call the GAS backend (via fetch POST) to store the GitHub return URL
-           in PropertiesService and get back a short token.
-        2. Navigate the full browser tab to GAS_URL?token=<token> so the user
-           logs in at the top level (no iframe restriction).
-        3. After Google OAuth, GAS re-renders, reads the token from
-           doGet(e).parameter.token, injects it as GAS_RETURN_TOKEN.
-        4. initializeApp (patched) calls getReturnUrl(token) then redirects
-           the user back to this GitHub Pages URL. Done.
-    */
-    window.addEventListener('message', function(e) {
-      var d = e.data;
-      var isLoginMsg = (d === 'GAS_DO_LOGIN') ||
-                       (d && d.type === 'GAS_DO_LOGIN');
-      if (!isLoginMsg) return;
-
-      var gasUrl = (d && d.gasUrl) ? d.gasUrl : GAS_BASE_URL;
-
-      // Store return URL server-side and get a token
-      fetch(GAS_BASE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'storeReturnUrl', payload: { url: GITHUB_RETURN_URL } })
-      })
-      .then(function(r) { return r.json(); })
-      .then(function(res) {
-        if (res && res.status === 'success' && res.token) {
-          // Navigate full tab to GAS login page with token
-          window.location.href = GAS_BASE_URL + '?token=' + encodeURIComponent(res.token);
-        } else {
-          // Fallback: go directly without token (user will land on GAS, not redirect back)
-          window.location.href = gasUrl;
-        }
-      })
-      .catch(function() {
-        window.location.href = gasUrl;
-      });
-    });
-
-    /* PWA Install Logic */
-    (function() {
-      var isStandalone = (window.navigator.standalone === true) || window.matchMedia('(display-mode: standalone)').matches;
-      if (isStandalone) return;
-      try { if (localStorage.getItem('pwabannerdismissed') === '1') return; } catch(e){}
-      var ua = navigator.userAgent;
-      var isIOS     = /iPhone|iPod|iPad/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-      var isAndroid = /Android/.test(ua);
-      var isEdge    = /Edg\//.test(ua);
-      var isChromium = /Chrome/.test(ua) && !isEdge;
-      var isFirefox  = /Firefox/.test(ua);
-      var isSafariDesktop = /Safari/.test(ua) && !isChromium && !isEdge && !isFirefox && !isIOS;
-      var banner     = document.getElementById('pwa-install-banner');
-      var installBtn = document.getElementById('pwa-install-btn');
-      var instruction = document.getElementById('pwa-instruction');
-      var deferredPrompt = null;
-      window.addEventListener('beforeinstallprompt', function(e) {
-        e.preventDefault(); deferredPrompt = e;
-        installBtn.style.display = 'inline-flex'; instruction.style.display = 'none';
-        if (!banner.classList.contains('pwa-visible')) banner.classList.add('pwa-visible');
-      });
-      installBtn.addEventListener('click', function() {
-        if (!deferredPrompt) return;
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then(function(r) { if (r.outcome === 'accepted') dismissBanner(true); deferredPrompt = null; });
-      });
-      window.addEventListener('appinstalled', function() { dismissBanner(true); });
-      function setManualInstructions() {
-        if (isIOS)            instruction.innerHTML = 'Tap <strong>Share</strong> then <strong>Add to Home Screen</strong>';
-        else if (isAndroid)   instruction.innerHTML = 'Tap <strong>&#8942;</strong> then <strong>Add to Home Screen</strong>';
-        else if (isEdge)      instruction.innerHTML = 'Click <strong>&#8942;</strong> &rarr; <strong>Apps</strong> &rarr; <strong>Install this site as an app</strong>';
-        else if (isChromium)  instruction.innerHTML = 'Click <strong>&#8942;</strong> &rarr; <strong>Install page as app</strong>';
-        else if (isSafariDesktop) instruction.innerHTML = 'Click <strong>File</strong> &rarr; <strong>Add to Dock</strong>';
-        else if (isFirefox)   instruction.innerHTML = 'Use <strong>Chrome</strong> or <strong>Edge</strong> for install support';
-        else                  instruction.innerHTML = "Use your browser's <strong>Install</strong> option from the menu";
-      }
-      setTimeout(function() {
-        if (!deferredPrompt) { setManualInstructions(); instruction.style.display = 'block'; banner.classList.add('pwa-visible'); }
-      }, 4000);
-      function dismissBanner(permanent) {
-        banner.classList.remove('pwa-visible'); banner.classList.add('pwa-hiding');
-        if (permanent) { try { localStorage.setItem('pwabannerdismissed', '1'); } catch(e){} }
-        setTimeout(function() { banner.style.display = 'none'; }, 300);
-      }
-      document.getElementById('pwa-dismiss').addEventListener('click', function() { dismissBanner(true); });
-    })();
-  </script>
 </body>
 </html>
