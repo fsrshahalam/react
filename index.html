@@ -152,6 +152,27 @@
 </div>
 
 <script>
+
+ const GAS_URL = "https://script.google.com/macros/s/AKfycbz5OSjqvgSIe_ZB1ZQZjfKjdYXxF6QrNb1NAvsiavxDWQSGNGadFILB79n169hSZ66Omw/exec";
+const GITHUB_URL = "https://fsrshahalam.github.io/react/";
+
+// If returning from GAS login (has ?loggedin param), clean the URL silently
+const params = new URLSearchParams(window.location.search);
+if (params.has('loggedin')) {
+  window.history.replaceState({}, '', GITHUB_URL); // clean URL bar
+}
+
+// Load iframe normally
+const frame = document.getElementById('app-frame');
+frame.src = GAS_URL + "?noredirect=1";
+
+// Listen for login trigger from GAS iframe
+window.addEventListener('message', function(e) {
+  if (e.data && e.data.type === 'GAS_DO_LOGIN') {
+    // Redirect top-level to GAS, which after auth comes back to GitHub
+    window.location.href = GAS_URL + "?redirectto=" + encodeURIComponent(GITHUB_URL + "?loggedin=1");
+  }
+});
 // --- Register service worker ---
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(function() {});
