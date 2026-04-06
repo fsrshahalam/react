@@ -1,13 +1,32 @@
-// Minimal service worker — required to enable beforeinstallprompt
-// No caching, no push notifications, no offline support
-self.addEventListener('install', function() {
-  self.skipWaiting();
+// FSR REACT Service Worker — launcher shell only
+const CACHE = 'fsr-react-v2';
+const SHELL = ['./', './index.html', './app.html', './manifest.json'];
+
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE)
+      .then(c => c.addAll(SHELL))
+      .then(() => self.skipWaiting())
+  );
 });
 
-self.addEventListener('activate', function(event) {
-  event.waitUntil(self.clients.claim());
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(
+        keys.filter(k => k !== CACHE).map(k => caches.delete(k))
+      ))
+      .then(() => self.clients.claim())
+  );
 });
 
-self.addEventListener('fetch', function(event) {
-  event.respondWith(fetch(event.request));
+self.addEventListener('fetch', e => {
+  const url = new URL(e.request.url);
+  // Only serve cache for same-origin (GitHub Pages) requests
+  // All script.google.com requests go straight to network
+  if (url.origin === location.origin) {
+    e.respondWith(
+      caches.match(e.request).then(r => r || fetch(e.request))
+    );
+  }
 });
