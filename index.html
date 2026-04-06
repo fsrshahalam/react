@@ -180,7 +180,7 @@ setTimeout(function() {
 // Listen for login trigger from GAS iframe
 window.addEventListener('message', function(e) {
   if (e.data && e.data.type === 'GAS_DO_LOGIN') {
-    window.location.href = GAS_URL + "?redirectto=" + encodeURIComponent(GITHUB_URL + "?loggedin=1");
+    window.location.href = GAS_URL; // just go to GAS — it will bounce back
   }
 });
 
