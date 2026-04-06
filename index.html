@@ -137,16 +137,6 @@
   sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-top-navigation allow-modals">
 </iframe>
 
- <script>
-  // Handle messages from the GAS iframe
-  window.addEventListener('message', function(e) {
-    // Login redirect — sent by doLogin() when running inside iframe
-    if (e.data && e.data.type === 'GAS_LOGIN_REDIRECT') {
-      window.location.href = e.data.url;
-    }
-  });
-</script>
-
 <!-- Install banner -->
 <div id="pwa-install-banner">
   <div class="pwa-card">
