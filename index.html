@@ -77,8 +77,8 @@
   </div>
 
   <!--
-    FIX 1: allow-modals added so confirm()/alert() work inside iframe
-           (fixes Batch Record Decision, Batch Assign, Certs, Retract, etc.)
+    allow-modals: fixes confirm()/alert() → fixes Batch Record Decision,
+    Batch Assign, Batch Reassign, Certs, Retract, etc.
   -->
   <iframe
     id="app-frame"
@@ -105,6 +105,10 @@
       navigator.serviceWorker.register('sw.js').catch(function(){});
     }
 
+    var GAS_BASE_URL = document.getElementById('app-frame').src.split('?')[0];
+    var GITHUB_RETURN_URL = window.location.href.split('?')[0];
+
+    // Hide loading screen once iframe loads
     var frame = document.getElementById('app-frame');
     frame.addEventListener('load', function() {
       var ls = document.getElementById('loading-screen');
@@ -118,19 +122,48 @@
     }, 10000);
 
     /*
-      FIX 2: Handle login redirect from GAS iframe.
-      GAS doLogin() posts "GAS_DO_LOGIN" when it detects it is running
-      inside an iframe. We then navigate the top-level window to the GAS
-      URL with ?redirectto=<this GitHub Pages URL> so that after Google
-      OAuth the user is automatically sent back here.
+      LOGIN REDIRECT FIX — Token Relay via PropertiesService
+      --------------------------------------------------------
+      When the GAS iframe detects it is inside an iframe (no google.script.run
+      for auth), it posts { type: "GAS_DO_LOGIN", gasUrl: "..." } here.
+
+      We:
+        1. Call the GAS backend (via fetch POST) to store the GitHub return URL
+           in PropertiesService and get back a short token.
+        2. Navigate the full browser tab to GAS_URL?token=<token> so the user
+           logs in at the top level (no iframe restriction).
+        3. After Google OAuth, GAS re-renders, reads the token from
+           doGet(e).parameter.token, injects it as GAS_RETURN_TOKEN.
+        4. initializeApp (patched) calls getReturnUrl(token) then redirects
+           the user back to this GitHub Pages URL. Done.
     */
     window.addEventListener('message', function(e) {
-      var isLoginMsg = (e.data === 'GAS_DO_LOGIN') ||
-                       (e.data && e.data.type === 'GAS_DO_LOGIN');
+      var d = e.data;
+      var isLoginMsg = (d === 'GAS_DO_LOGIN') ||
+                       (d && d.type === 'GAS_DO_LOGIN');
       if (!isLoginMsg) return;
-      var gasBase   = document.getElementById('app-frame').src.split('?')[0];
-      var returnUrl = window.location.href.split('?')[0];
-      window.location.href = gasBase + '?redirectto=' + encodeURIComponent(returnUrl);
+
+      var gasUrl = (d && d.gasUrl) ? d.gasUrl : GAS_BASE_URL;
+
+      // Store return URL server-side and get a token
+      fetch(GAS_BASE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'storeReturnUrl', payload: { url: GITHUB_RETURN_URL } })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res && res.status === 'success' && res.token) {
+          // Navigate full tab to GAS login page with token
+          window.location.href = GAS_BASE_URL + '?token=' + encodeURIComponent(res.token);
+        } else {
+          // Fallback: go directly without token (user will land on GAS, not redirect back)
+          window.location.href = gasUrl;
+        }
+      })
+      .catch(function() {
+        window.location.href = gasUrl;
+      });
     });
 
     /* PWA Install Logic */
@@ -161,12 +194,12 @@
       });
       window.addEventListener('appinstalled', function() { dismissBanner(true); });
       function setManualInstructions() {
-        if (isIOS)            instruction.innerHTML = 'Tap <strong>Share</strong> &#9757; then <strong>Add to Home Screen</strong>';
+        if (isIOS)            instruction.innerHTML = 'Tap <strong>Share</strong> then <strong>Add to Home Screen</strong>';
         else if (isAndroid)   instruction.innerHTML = 'Tap <strong>&#8942;</strong> then <strong>Add to Home Screen</strong>';
         else if (isEdge)      instruction.innerHTML = 'Click <strong>&#8942;</strong> &rarr; <strong>Apps</strong> &rarr; <strong>Install this site as an app</strong>';
         else if (isChromium)  instruction.innerHTML = 'Click <strong>&#8942;</strong> &rarr; <strong>Install page as app</strong>';
         else if (isSafariDesktop) instruction.innerHTML = 'Click <strong>File</strong> &rarr; <strong>Add to Dock</strong>';
-        else if (isFirefox)   instruction.innerHTML = "Use <strong>Chrome</strong> or <strong>Edge</strong> for install support";
+        else if (isFirefox)   instruction.innerHTML = 'Use <strong>Chrome</strong> or <strong>Edge</strong> for install support';
         else                  instruction.innerHTML = "Use your browser's <strong>Install</strong> option from the menu";
       }
       setTimeout(function() {
