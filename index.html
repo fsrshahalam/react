@@ -4,8 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#1a3a9a" />
-  <!-- Instant redirect fallback -->
-  <meta http-equiv="refresh" content="0;url=https://script.google.com/a/macros/uitm.edu.my/s/AKfycbw-a0ngA_7540FmUkRuJ2dKvSqNu02Fz18bRXh6XjP3a-fy6sBDvyv_kzkmCR7QUTPp/exec" />
+  <meta name="referrer" content="no-referrer" />
+  <!-- Instant redirect fallback (generic URL — works on any network / account) -->
+  <meta http-equiv="refresh" content="0;url=https://script.google.com/macros/s/AKfycbw-a0ngA_7540FmUkRuJ2dKvSqNu02Fz18bRXh6XjP3a-fy6sBDvyv_kzkmCR7QUTPp/exec" />
   <title>FSR REACT</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -18,6 +19,8 @@
       background: linear-gradient(135deg, #0f2057 0%, #1a3a9a 55%, #5b2d8e 100%);
       color: #fff;
       font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      text-align: center;
+      padding: 24px;
     }
     .logo {
       width: 80px; height: 80px;
@@ -44,6 +47,31 @@
       animation: spin .8s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+    .fallback {
+      display: none;
+      margin-top: 32px;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+    }
+    .fallback.show { display: flex; }
+    .fallback small { font-size: 12px; color: rgba(255,255,255,0.7); max-width: 300px; line-height: 1.5; }
+    .btn {
+      display: inline-block;
+      min-width: 240px;
+      padding: 12px 20px;
+      border-radius: 12px;
+      background: #fff;
+      color: #1a3a9a;
+      font-weight: 800;
+      font-size: 14px;
+      text-decoration: none;
+    }
+    .btn.alt {
+      background: transparent;
+      color: #fff;
+      border: 1.5px solid rgba(255,255,255,0.45);
+    }
   </style>
 </head>
 <body>
@@ -52,8 +80,30 @@
   <p>Redirecting…</p>
   <div class="loader"></div>
 
+  <!-- Shown if auto-redirect doesn't happen (blocked, slow network, etc.) -->
+  <div class="fallback" id="fallback">
+    <small>Taking too long? Tap below to open the app.</small>
+    <a class="btn" id="primaryLink" href="#">Open FSR REACT</a>
+    <a class="btn alt" id="altLink" href="#">Open with UiTM account</a>
+    <small>If it still fails, sign out of other Google accounts or open in an Incognito / Private window.</small>
+  </div>
+
   <script>
-    window.location.replace("https://script.google.com/a/macros/uitm.edu.my/s/AKfycbw-a0ngA_7540FmUkRuJ2dKvSqNu02Fz18bRXh6XjP3a-fy6sBDvyv_kzkmCR7QUTPp/exec");
+    var ID = "AKfycbw-a0ngA_7540FmUkRuJ2dKvSqNu02Fz18bRXh6XjP3a-fy6sBDvyv_kzkmCR7QUTPp";
+    // Generic URL: not tied to the uitm.edu.my Workspace login flow
+    var PRIMARY = "https://script.google.com/macros/s/" + ID + "/exec";
+    // Domain URL: backup for users who must go through UiTM Google sign-in
+    var DOMAIN  = "https://script.google.com/a/macros/uitm.edu.my/s/" + ID + "/exec";
+
+    document.getElementById("primaryLink").href = PRIMARY;
+    document.getElementById("altLink").href = DOMAIN;
+
+    // Show manual buttons if we're still here after 3 seconds
+    setTimeout(function () {
+      document.getElementById("fallback").classList.add("show");
+    }, 3000);
+
+    window.location.replace(PRIMARY);
   </script>
 </body>
 </html>
